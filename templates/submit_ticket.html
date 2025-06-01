@@ -1,0 +1,28 @@
+<!-- templates/submit_ticket.html -->
+<!doctype html>
+<html>
+<head>
+  <title>Submit Ticket</title>
+</head>
+<body>
+  <h1>Submit a New Ticket</h1>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <ul>
+        {% for category, message in messages %}
+          <li><strong>{{ category }}:</strong> {{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+
+  <form method="post">
+    <p><input type="text" name="title" placeholder="Ticket Title" required></p>
+    <p><textarea name="description" placeholder="Describe the issue" required></textarea></p>
+    <p><input type="submit" value="Submit Ticket"></p>
+  </form>
+
+  <a href="{{ url_for('show_tickets') }}">Back to Tickets</a>
+</body>
+</html>

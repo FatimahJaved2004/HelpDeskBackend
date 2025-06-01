@@ -1,0 +1,23 @@
+<!DOCTYPE html> 
+<html> 
+<head> 
+    <title>Show Entries</title> 
+</head> 
+<body> 
+    <h1>Entries</h1> 
+    <div> 
+        {% if entries %} 
+            <ul> 
+                {% for entry in entries %} 
+                    <li> 
+                        <h2>{{ entry.title }}</h2> 
+                        <p>{{ entry.text }}</p> 
+                    </li> 
+                {% endfor %} 
+            </ul> 
+        {% else %} 
+            <p>No entries found.</p> 
+        {% endif %} 
+    </div> 
+</body> 
+</html> 
