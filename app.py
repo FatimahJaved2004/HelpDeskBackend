@@ -164,6 +164,43 @@ def delete_ticket(ticket_id):
     flash('Ticket deleted successfully.', 'success')
     return redirect(url_for('dashboard'))
 
+@app.route('/ticket/<int:ticket_id>')
+def view_ticket(ticket_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    db = get_db()
+    ticket = db.execute('SELECT * FROM tickets WHERE id = ?', (ticket_id,)).fetchone()
+    comments = db.execute('''
+        SELECT c.content, c.created_at, u.first_name || ' ' || u.last_name AS author
+        FROM comments c
+        JOIN users u ON c.user_id = u.id
+        WHERE c.ticket_id = ?
+        ORDER BY c.created_at ASC
+    ''', (ticket_id,)).fetchall()
+
+    return render_template('view_ticket.html', ticket=ticket, comments=comments)
+
+@app.route('/ticket/<int:ticket_id>/comment', methods=['POST'])
+def add_comment(ticket_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    content = request.form['content']
+    db = get_db()
+    db.execute(
+        'INSERT INTO comments (user_id, content, ticket_id) VALUES (?, ?, ?)',
+        (session['user_id'], content, ticket_id)
+    )
+    db.commit()
+    flash('Comment added successfully.', 'success')
+    return redirect(url_for('view_ticket', ticket_id=ticket_id))
+
+
+
 # --- Run the App ---
 if __name__ == '__main__':
+    if not os.path.exists(app.config['DATABASE']):
+        init_db()
+        seed_dummy_users()  # Seed dummy data only if DB is created
     app.run(debug=True, host="0.0.0.0", port=5000)
