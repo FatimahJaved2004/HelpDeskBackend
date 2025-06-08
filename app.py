@@ -48,7 +48,7 @@ def seed_dummy_users():
         try:
             db.execute('INSERT INTO users (email, password, first_name, last_name, employee_id, role) VALUES (?, ?, ?, ?, ?, ?)', user)
         except sqlite3.IntegrityError:
-            continue  # Skip if already exists
+            continue
     db.commit()
 
 # --- User Auth ---
@@ -87,7 +87,7 @@ def login():
             session['user_id'] = user['id']
             session['role'] = user['role']
             flash('Login successful.', 'success')
-            return redirect(url_for('show_tickets'))
+            return redirect(url_for('dashboard'))
         else:
             flash('Invalid email or password', 'error')
 
@@ -104,18 +104,20 @@ def logout():
 def home():
     return render_template('home.html')
 
-# --- Ticket Functions ---
-@app.route('/tickets')
-def show_tickets():
+# --- Dashboard ---
+@app.route('/dashboard')
+def dashboard():
     if 'user_id' not in session:
         return redirect(url_for('login'))
 
     db = get_db()
-    if session['role'] == 'admin':
+    role = session.get('role')
+    user_id = session.get('user_id')
+
+    if role == 'admin':
         tickets = db.execute('SELECT * FROM tickets ORDER BY id DESC').fetchall()
     else:
-        tickets = db.execute('SELECT * FROM tickets WHERE user_id = ? ORDER BY id DESC',
-                             (session['user_id'],)).fetchall()
+        tickets = db.execute('SELECT * FROM tickets WHERE user_id = ? ORDER BY id DESC', (user_id,)).fetchall()
 
     return render_template('show_tickets.html', tickets=tickets)
 
@@ -136,12 +138,32 @@ def submit_ticket():
                        (title, description, session['user_id']))
             db.commit()
             flash('Ticket submitted successfully!', 'success')
-            return redirect(url_for('show_tickets'))
+            return redirect(url_for('dashboard'))
 
     return render_template('submit_ticket.html')
 
+@app.route('/ticket/<int:ticket_id>/edit', methods=['GET', 'POST'])
+def edit_ticket(ticket_id):
+    db = get_db()
+    if request.method == 'POST':
+        title = request.form['title']
+        description = request.form['description']
+        db.execute('UPDATE tickets SET title = ?, description = ? WHERE id = ?', (title, description, ticket_id))
+        db.commit()
+        flash('Ticket updated successfully.', 'success')
+        return redirect(url_for('dashboard'))
+
+    ticket = db.execute('SELECT * FROM tickets WHERE id = ?', (ticket_id,)).fetchone()
+    return render_template('edit_ticket.html', ticket=ticket)
+
+@app.route('/ticket/<int:ticket_id>/delete', methods=['POST'])
+def delete_ticket(ticket_id):
+    db = get_db()
+    db.execute('DELETE FROM tickets WHERE id = ?', (ticket_id,))
+    db.commit()
+    flash('Ticket deleted successfully.', 'success')
+    return redirect(url_for('dashboard'))
+
+# --- Run the App ---
 if __name__ == '__main__':
-    with app.app_context():
-        init_db()
-        seed_dummy_users()
     app.run(debug=True, host="0.0.0.0", port=5000)
