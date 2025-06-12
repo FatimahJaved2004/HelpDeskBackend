@@ -40,8 +40,9 @@
               </div>
 
               <div class="mb-3">
-                <label class="form-label">Employee ID</label>
-                <input type="text" class="form-control" name="employee_id" required>
+                <label for="employee_id" class="form-label">Employee ID</label>
+                <input type="text" class="form-control" id="employee_id" name="employee_id"
+                      pattern="^EMP\d{4}$" title="Employee ID must be in the format EMP0001" required>
               </div>
 
               <div class="mb-3">
@@ -59,8 +60,15 @@
               </div>
 
               <div class="mb-3">
-                <label class="form-label">Password</label>
-                <input type="password" class="form-control" name="password" required>
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" name="password"
+                      pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}"
+                      title="At least 8 characters, 1 uppercase, 1 lowercase, 1 number, and 1 special character (@$!%*?&)" required>
+              </div>
+
+              <div class="mb-3">
+                <label for="confirm_password" class="form-label">Confirm Password</label>
+                <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
               </div>
 
               <button type="submit" class="btn btn-success w-100">Register</button>
@@ -79,3 +87,14 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
+<script>
+  document.querySelector("form").addEventListener("submit", function(e) {
+    const pw = document.getElementById("password").value;
+    const cpw = document.getElementById("confirm_password").value;
+    if (pw !== cpw) {
+      e.preventDefault();
+      alert("Passwords do not match.");
+    }
+  });
+</script>
