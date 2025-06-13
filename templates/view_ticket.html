@@ -3,12 +3,17 @@
 {% block title %}View Ticket{% endblock %}
 
 {% block content %}
-<div class="card">
+<div class="d-flex align-items-center mb-4">
+  <h2 class="me-3" style="visibility: hidden;">Help Desk</h2>
+  <h2 class="mb-0">View Ticket</h2>
+</div>
+
+<div class="card shadow-sm mb-4">
   <div class="card-body">
     <h4 class="card-title">{{ ticket['title'] }}</h4>
     <h6 class="card-subtitle mb-2 text-muted">Status: {{ ticket['status'] }}</h6>
     <p class="card-text">{{ ticket['description'] }}</p>
-    <p class="text-muted">Created: {{ ticket['created_at'] }}</p>
+    <p class="text-muted small">Created: {{ ticket['created_at'] }}</p>
 
     <div class="d-flex gap-2 mt-3">
       {% if session['user_id'] == ticket['user_id'] or session['role'] == 'admin' %}
@@ -16,17 +21,15 @@
       {% endif %}
 
       {% if session['role'] == 'admin' %}
-        <form action="{{ url_for('delete_ticket', ticket_id=ticket['id']) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this ticket?');">
-          <button type="submit" class="btn btn-danger">Delete</button>
+        <form method="POST" action="{{ url_for('delete_ticket', ticket_id=ticket['id']) }}">
+          <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this ticket?');">Delete</button>
         </form>
       {% endif %}
     </div>
   </div>
 </div>
 
-<hr>
-
-<h5 class="mt-4">Comments</h5>
+<h5>Comments</h5>
 {% if comments %}
   <ul class="list-group mb-3">
     {% for comment in comments %}
@@ -40,10 +43,9 @@
   <p class="text-muted">No comments yet.</p>
 {% endif %}
 
-<!-- Comment Form -->
-<div class="card mt-4">
+<div class="card mt-3">
   <div class="card-body">
-    <h6 class="card-title">Add a Comment</h6>
+    <h6>Add a Comment</h6>
     <form method="POST" action="{{ url_for('add_comment', ticket_id=ticket['id']) }}">
       <div class="mb-3">
         <textarea class="form-control" name="content" rows="3" placeholder="Write your comment here..." required></textarea>
@@ -53,5 +55,5 @@
   </div>
 </div>
 
-<a href="{{ url_for('dashboard') }}" class="btn btn-secondary mt-4">Back</a>
+<a href="{{ url_for('dashboard') }}" class="btn btn-secondary mt-3">Back</a>
 {% endblock %}

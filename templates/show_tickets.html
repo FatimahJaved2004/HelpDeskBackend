@@ -3,48 +3,36 @@
 {% block title %}Your Tickets{% endblock %}
 
 {% block content %}
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="mb-0">Your Tickets</h2>
-    <a href="{{ url_for('submit_ticket') }}" class="btn btn-success">Submit New Ticket</a>
-  </div>
+<div class="d-flex align-items-center mb-4">
+  <h2 class="me-3" style="visibility: hidden;">Help Desk</h2>
+  <h2 class="mb-0">Your Tickets</h2>
+</div>
 
-  {% if tickets %}
-    <div class="table-responsive">
-  <table class="table table-hover">
-  <thead>
-    <tr>
-      <th>Title</th>
-      <th>Description</th>
-      <th>Status</th>
-      <th>Posted</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for ticket in tickets %}
-      <tr class="clickable-row" data-href="{{ url_for('view_ticket', ticket_id=ticket['id']) }}">
-        <td>{{ ticket['title'] }}</td>
-        <td>{{ ticket['description'][:50] }}{% if ticket['description']|length > 50 %}...{% endif %}</td>
-        <td>{{ ticket['status'] }}</td>
-        <td>{{ ticket['created_at'] }}</td>
-      </tr>
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
     {% endfor %}
-  </tbody>
-</table>
-
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    const rows = document.querySelectorAll('.clickable-row');
-    rows.forEach(row => {
-      row.addEventListener('click', () => {
-        window.location = row.getAttribute('data-href');
-      });
-    });
-  });
-</script>
-
-
-    </div>
-  {% else %}
-    <div class="alert alert-info">No tickets found.</div>
   {% endif %}
+{% endwith %}
+
+{% if tickets %}
+  <div class="list-group">
+    {% for ticket in tickets %}
+      <a href="{{ url_for('view_ticket', ticket_id=ticket['id']) }}" class="list-group-item list-group-item-action">
+        <div class="d-flex w-100 justify-content-between">
+          <h5 class="mb-1">{{ ticket['title'] }}</h5>
+          <small class="text-muted">{{ ticket['created_at'] | naturaltime }}</small>
+        </div>
+        <p class="mb-1 text-truncate">{{ ticket['description'] }}</p>
+        <small class="text-muted">Status: {{ ticket['status'] }}</small>
+      </a>
+    {% endfor %}
+  </div>
+{% else %}
+  <p class="text-muted">No tickets found.</p>
+{% endif %}
 {% endblock %}
