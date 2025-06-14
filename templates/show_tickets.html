@@ -3,9 +3,9 @@
 {% block title %}Your Tickets{% endblock %}
 
 {% block content %}
-<div class="d-flex align-items-center mb-4">
-  <h2 class="me-3" style="visibility: hidden;">Help Desk</h2>
-  <h2 class="mb-0">Your Tickets</h2>
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h3 class="mb-0">Your Tickets</h3>
+  <a href="{{ url_for('submit_ticket') }}" class="btn btn-primary">Submit New Ticket</a>
 </div>
 
 {% with messages = get_flashed_messages(with_categories=true) %}
@@ -19,20 +19,24 @@
   {% endif %}
 {% endwith %}
 
-{% if tickets %}
-  <div class="list-group">
-    {% for ticket in tickets %}
-      <a href="{{ url_for('view_ticket', ticket_id=ticket['id']) }}" class="list-group-item list-group-item-action">
-        <div class="d-flex w-100 justify-content-between">
-          <h5 class="mb-1">{{ ticket['title'] }}</h5>
-          <small class="text-muted">{{ ticket['created_at'] | naturaltime }}</small>
-        </div>
-        <p class="mb-1 text-truncate">{{ ticket['description'] }}</p>
-        <small class="text-muted">Status: {{ ticket['status'] }}</small>
-      </a>
-    {% endfor %}
-  </div>
-{% else %}
-  <p class="text-muted">No tickets found.</p>
-{% endif %}
+<div class="list-group">
+  {% for ticket in tickets %}
+  <a href="{{ url_for('view_ticket', ticket_id=ticket['id']) }}" class="list-group-item list-group-item-action shadow-sm mb-2">
+    <div class="d-flex w-100 justify-content-between">
+      <h5 class="mb-1">{{ ticket['title'] }}</h5>
+      <small class="text-muted">{{ ticket['created_at'] | naturaltime }}</small>
+    </div>
+    <p class="mb-1 text-truncate">{{ ticket['description'] }}</p>
+    <small class="text-muted">
+      Status:
+      <span class="badge {{ 'bg-danger' if ticket['status'] == 'Closed' else 'bg-success' }}">
+        {{ ticket['status'] }}
+      </span>
+      | By: {{ ticket['creator_name'] }}
+    </small>
+  </a>
+  {% else %}
+  <div class="alert alert-info">No tickets found.</div>
+  {% endfor %}
+</div>
 {% endblock %}

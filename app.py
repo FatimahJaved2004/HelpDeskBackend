@@ -36,11 +36,11 @@ def close_db(error):
 def init_db():
     with app.app_context():
         db = get_db()
-        with app.open_resource('schema.sql', mode='r') as f:
+        with app.open_resource('schema.sql') as f:
             db.executescript(f.read())
         db.commit()
 
-# --- Filters ---
+# --- Template filter ---
 @app.template_filter('naturaltime')
 def naturaltime_filter(value):
     if not value:
@@ -51,17 +51,17 @@ def naturaltime_filter(value):
     except Exception:
         return value
 
-# --- Dummy data ---
+# --- Seed data ---
 def seed_dummy_users():
     db = get_db()
-    dummy_users = [
+    users = [
         ('admin@example.com', generate_password_hash('adminpass'), 'Alice', 'Admin', 'EMP0001', 'admin'),
         ('user1@example.com', generate_password_hash('userpass'), 'Bob', 'User', 'EMP0002', 'employee'),
         ('user2@example.com', generate_password_hash('userpass2'), 'Charlie', 'Worker', 'EMP0003', 'employee')
     ]
-    for user in dummy_users:
+    for u in users:
         try:
-            db.execute('INSERT INTO users (email, password, first_name, last_name, employee_id, role) VALUES (?, ?, ?, ?, ?, ?)', user)
+            db.execute('INSERT INTO users (email, password, first_name, last_name, employee_id, role) VALUES (?, ?, ?, ?, ?, ?)', u)
         except sqlite3.IntegrityError:
             continue
     db.commit()
@@ -69,14 +69,14 @@ def seed_dummy_users():
 def seed_dummy_tickets():
     db = get_db()
     users = db.execute('SELECT id FROM users WHERE role = ?', ('employee',)).fetchall()
-    dummy_tickets = [
-        ("Cannot access email", "Getting a 403 error when logging in.", users[0]['id']),
-        ("Printer not working", "The printer on floor 2 is jammed.", users[0]['id']),
-        ("Slow computer", "Laptop takes 20 minutes to boot.", users[1]['id']),
-        ("VPN issue", "VPN disconnects every 5 minutes.", users[1]['id']),
+    tickets = [
+        ("Cannot access email", "403 error logging in", users[0]['id']),
+        ("Printer jam", "Printer on floor 2 jammed", users[0]['id']),
+        ("Slow laptop", "Laptop takes 20 mins to boot", users[1]['id']),
+        ("VPN drops", "VPN disconnects repeatedly", users[1]['id'])
     ]
-    for title, description, user_id in dummy_tickets:
-        db.execute('INSERT INTO tickets (title, description, user_id) VALUES (?, ?, ?)', (title, description, user_id))
+    for t in tickets:
+        db.execute('INSERT INTO tickets (title, description, user_id) VALUES (?, ?, ?)', t)
     db.commit()
 
 # --- Routes ---
@@ -113,8 +113,8 @@ def register():
             flash('Passwords do not match.', 'error')
             return render_template('register.html')
 
-        hashed_pw = generate_password_hash(password)
         try:
+            hashed_pw = generate_password_hash(password)
             db.execute('INSERT INTO users (email, password, first_name, last_name, employee_id, role) VALUES (?, ?, ?, ?, ?, ?)',
                        (email, hashed_pw, first_name, last_name, employee_id, role))
             db.commit()
@@ -130,13 +130,13 @@ def login():
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
-
         db = get_db()
         user = db.execute('SELECT * FROM users WHERE email = ?', (email,)).fetchone()
 
         if user and check_password_hash(user['password'], password):
             session['user_id'] = user['id']
             session['role'] = user['role']
+            session['first_name'] = user['first_name']
             flash('Login successful.', 'success')
             return redirect(url_for('dashboard'))
         else:
@@ -154,26 +154,32 @@ def logout():
 def dashboard():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-
     db = get_db()
-    role = session.get('role')
-    user_id = session.get('user_id')
+    user_id = session['user_id']
+    role = session['role']
     status = request.args.get('status')
 
-    if role == 'admin':
-        q = 'SELECT * FROM tickets'
-        params = ()
-    else:
-        q = 'SELECT * FROM tickets WHERE user_id = ?'
+    q = '''
+        SELECT t.*, u.first_name || ' ' || u.last_name AS creator_name
+        FROM tickets t
+        JOIN users u ON t.user_id = u.id
+    '''
+    params = ()
+
+    if role != 'admin':
+        q += ' WHERE t.user_id = ?'
         params = (user_id,)
 
     if status:
-        q += ' AND' if 'WHERE' in q else ' WHERE'
-        q += ' status = ?'
+        if 'WHERE' in q:
+            q += ' AND t.status = ?'
+        else:
+            q += ' WHERE t.status = ?'
         params += (status,)
 
-    q += ' ORDER BY id DESC'
+    q += ' ORDER BY t.id DESC'
     tickets = db.execute(q, params).fetchall()
+
     return render_template('show_tickets.html', tickets=tickets)
 
 @app.route('/submit', methods=['GET', 'POST'])
@@ -184,15 +190,26 @@ def submit_ticket():
         title = request.form['title']
         description = request.form['description']
         if not title or not description:
-            flash('All fields are required!', 'error')
+            flash('All fields are required.', 'error')
         else:
             db = get_db()
             db.execute('INSERT INTO tickets (title, description, user_id) VALUES (?, ?, ?)',
                        (title, description, session['user_id']))
             db.commit()
-            flash('Ticket submitted successfully!', 'success')
+            flash('Ticket submitted successfully.', 'success')
             return redirect(url_for('dashboard'))
     return render_template('submit_ticket.html')
+
+@app.route('/ticket/<int:ticket_id>/close', methods=['POST'])
+def close_ticket(ticket_id):
+    if 'user_id' not in session or session['role'] != 'admin':
+        flash('You are not authorised to close tickets.', 'error')
+        return redirect(url_for('dashboard'))
+    db = get_db()
+    db.execute('UPDATE tickets SET status = ? WHERE id = ?', ('Closed', ticket_id))
+    db.commit()
+    flash('Ticket closed successfully.', 'success')
+    return redirect(url_for('dashboard'))
 
 @app.route('/ticket/<int:ticket_id>')
 def view_ticket(ticket_id):
@@ -205,9 +222,21 @@ def view_ticket(ticket_id):
         FROM comments c
         JOIN users u ON c.user_id = u.id
         WHERE c.ticket_id = ?
-        ORDER BY c.created_at ASC
+        ORDER BY c.created_at
     ''', (ticket_id,)).fetchall()
     return render_template('view_ticket.html', ticket=ticket, comments=comments)
+
+@app.route('/ticket/<int:ticket_id>/comment', methods=['POST'])
+def add_comment(ticket_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    content = request.form['content']
+    db = get_db()
+    db.execute('INSERT INTO comments (user_id, content, ticket_id) VALUES (?, ?, ?)',
+               (session['user_id'], content, ticket_id))
+    db.commit()
+    flash('Comment added successfully.', 'success')
+    return redirect(url_for('view_ticket', ticket_id=ticket_id))
 
 @app.route('/ticket/<int:ticket_id>/edit', methods=['GET', 'POST'])
 def edit_ticket(ticket_id):
@@ -233,26 +262,14 @@ def delete_ticket(ticket_id):
     flash('Ticket deleted successfully.', 'success')
     return redirect(url_for('dashboard'))
 
-@app.route('/ticket/<int:ticket_id>/comment', methods=['POST'])
-def add_comment(ticket_id):
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    content = request.form['content']
-    db = get_db()
-    db.execute('INSERT INTO comments (user_id, content, ticket_id) VALUES (?, ?, ?)',
-               (session['user_id'], content, ticket_id))
-    db.commit()
-    flash('Comment added successfully.', 'success')
-    return redirect(url_for('view_ticket', ticket_id=ticket_id))
-
-# --- Main ---
+# --- Run ---
 if __name__ == '__main__':
     if not os.path.exists(app.config['DATABASE']):
         init_db()
     with app.app_context():
         db = get_db()
-        if not db.execute('SELECT 1 FROM users LIMIT 1').fetchone():
+        if not db.execute('SELECT 1 FROM users').fetchone():
             seed_dummy_users()
-        if not db.execute('SELECT 1 FROM tickets LIMIT 1').fetchone():
+        if not db.execute('SELECT 1 FROM tickets').fetchone():
             seed_dummy_tickets()
     app.run(debug=True, host="0.0.0.0", port=5000)
