@@ -8,17 +8,6 @@
   <a href="{{ url_for('submit_ticket') }}" class="btn btn-primary">Submit New Ticket</a>
 </div>
 
-{% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    {% for category, message in messages %}
-      <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
-    {% endfor %}
-  {% endif %}
-{% endwith %}
-
 <div class="list-group">
   {% for ticket in tickets %}
   <a href="{{ url_for('view_ticket', ticket_id=ticket['id']) }}" class="list-group-item list-group-item-action shadow-sm mb-2">

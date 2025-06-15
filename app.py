@@ -37,7 +37,7 @@ def init_db():
     with app.app_context():
         db = get_db()
         with app.open_resource('schema.sql') as f:
-            db.executescript(f.read())
+            db.executescript(f.read().decode('utf-8'))
         db.commit()
 
 # --- Template filter ---
@@ -55,9 +55,16 @@ def naturaltime_filter(value):
 def seed_dummy_users():
     db = get_db()
     users = [
-        ('admin@example.com', generate_password_hash('adminpass'), 'Alice', 'Admin', 'EMP0001', 'admin'),
-        ('user1@example.com', generate_password_hash('userpass'), 'Bob', 'User', 'EMP0002', 'employee'),
-        ('user2@example.com', generate_password_hash('userpass2'), 'Charlie', 'Worker', 'EMP0003', 'employee')
+        ('admin@fujitsu.com', generate_password_hash('adminpass'), 'Alice', 'Admin', 'EMP0001', 'admin'),
+        ('user1@fujitsu.com', generate_password_hash('userpass'), 'Bob', 'Smith', 'EMP0002', 'employee'),
+        ('user2@fujitsu.com', generate_password_hash('userpass2'), 'Charlie', 'Jane', 'EMP0003', 'employee'),
+        ('user3@fujitsu.com', generate_password_hash('adminpass2'), 'David', 'Lee', 'EMP0004', 'admin'),
+        ('user5@fujitsu.com', generate_password_hash('userpass4'), 'Fatimah', 'Javed', 'EMP0005', 'employee'),
+        ('user6@fujitsu.com', generate_password_hash('userpass5'), 'Evelyn', 'Adams', 'EMP0006', 'employee'),
+        ('user7@fujitsu.com', generate_password_hash('userpass6'), 'Sam', 'Miller', 'EMP0007', 'employee'),
+        ('user8@fujitsu.com', generate_password_hash('userpass7'), 'Toto', 'Brown', 'EMP0008', 'employee'),
+        ('user9@fujitsu.com', generate_password_hash('userpass8'), 'Ashton', 'Wright', 'EMP0009', 'employee'),
+        ('user10@fujitsu.com', generate_password_hash('userpass9'), 'Mehak', 'Sajel', 'EMP0010', 'employee')
     ]
     for u in users:
         try:
@@ -73,7 +80,23 @@ def seed_dummy_tickets():
         ("Cannot access email", "403 error logging in", users[0]['id']),
         ("Printer jam", "Printer on floor 2 jammed", users[0]['id']),
         ("Slow laptop", "Laptop takes 20 mins to boot", users[1]['id']),
-        ("VPN drops", "VPN disconnects repeatedly", users[1]['id'])
+        ("VPN drops", "VPN disconnects repeatedly", users[1]['id']),
+        ("Software installation", "Need to install software on new laptop", users[2]['id']),
+        ("Hardware upgrade", "Request to upgrade RAM on laptop", users[3]['id']),
+        ("Network issue", "Cannot connect to Wi-Fi", users[4]['id']),
+        ("Password reset", "Forgot password, need reset link", users[5]['id']),
+        ("Email configuration", "Need help setting up email client", users[6]['id']),
+        ("Access request", "Request access to shared drive", users[7]['id']),
+        ("System crash", "System crashes on startup", users[7]['id']),
+        ("Backup failure", "Daily backup failed, need investigation", users[1]['id']),
+        ("Application bug", "Found bug in internal application", users[7]['id']),
+        ("Database issue", "Cannot connect to database server", users[6]['id']),
+        ("Security alert", "Received security alert email", users[5]['id']),
+        ("Performance issue", "System performance is slow", users[4]['id']),
+        ("Update request", "Request to update software version", users[3]['id']),
+        ("New hardware request", "Request for new monitor and keyboard", users[2]['id']),
+        ("Training request", "Need training on new software tools", users[1]['id']),
+        ("Policy clarification", "Need clarification on IT policy", users[0]['id'])
     ]
     for t in tickets:
         db.execute('INSERT INTO tickets (title, description, user_id) VALUES (?, ?, ?)', t)
