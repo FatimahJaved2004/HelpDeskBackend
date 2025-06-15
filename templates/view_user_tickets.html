@@ -1,0 +1,38 @@
+{% extends 'base_dashboard.html' %}
+
+{% block title %}{{ user.first_name }}'s Tickets{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">{{ user.first_name }} {{ user.last_name }} ({{ user.employee_id }}) - Tickets</h2>
+
+<table class="table table-striped table-hover shadow-sm">
+  <thead class="table-dark">
+    <tr>
+      <th>#</th>
+      <th>Title</th>
+      <th>Status</th>
+      <th>Created</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for ticket in tickets %}
+    <tr>
+      <td>{{ ticket.id }}</td>
+      <td>{{ ticket.title }}</td>
+      <td>
+        <span class="badge {% if ticket.status == 'Closed' %}bg-danger{% else %}bg-success{% endif %}">
+          {{ ticket.status }}
+        </span>
+      </td>
+      <td>{{ ticket.created_at }}</td>
+    </tr>
+    {% else %}
+    <tr>
+      <td colspan="4" class="text-center text-muted">No tickets found for this user.</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<a href="{{ url_for('view_users') }}" class="btn btn-secondary">Back to User List</a>
+{% endblock %}

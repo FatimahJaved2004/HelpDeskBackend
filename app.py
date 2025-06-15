@@ -239,7 +239,14 @@ def view_ticket(ticket_id):
     if 'user_id' not in session:
         return redirect(url_for('login'))
     db = get_db()
-    ticket = db.execute('SELECT * FROM tickets WHERE id = ?', (ticket_id,)).fetchone()
+    ticket = db.execute('''
+        SELECT t.*, 
+            u.employee_id, 
+            u.first_name || ' ' || u.last_name AS creator_name
+        FROM tickets t
+        JOIN users u ON t.user_id = u.id
+        WHERE t.id = ?
+    ''', (ticket_id,)).fetchone()
     comments = db.execute('''
         SELECT c.content, c.created_at, u.first_name || ' ' || u.last_name AS author
         FROM comments c
@@ -284,6 +291,34 @@ def delete_ticket(ticket_id):
     db.commit()
     flash('Ticket deleted successfully.', 'success')
     return redirect(url_for('dashboard'))
+
+@app.route('/admin/users')
+def view_users():
+    if session.get('role') != 'admin':
+        flash('You are not authorised to view this page.', 'error')
+        return redirect(url_for('dashboard'))
+    db = get_db()
+    users = db.execute('SELECT * FROM users').fetchall()
+    return render_template('view_users.html', users=users)
+
+@app.route('/users/<int:user_id>/tickets')
+def view_user_tickets(user_id):
+    if session.get('role') != 'admin':
+        flash('You are not authorised to view this.', 'error')
+        return redirect(url_for('dashboard'))
+
+    db = get_db()
+    user = db.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
+    if not user:
+        flash('User not found.', 'error')
+        return redirect(url_for('view_users'))
+
+    tickets = db.execute('''
+        SELECT * FROM tickets WHERE user_id = ? ORDER BY id DESC
+    ''', (user_id,)).fetchall()
+
+    return render_template('view_user_tickets.html', user=user, tickets=tickets)
+
 
 # --- Run ---
 if __name__ == '__main__':

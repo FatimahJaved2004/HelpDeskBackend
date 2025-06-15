@@ -1,0 +1,35 @@
+.sidebar {
+  width: 250px;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  background-color: lab(33.64% 57.08 46.95 / 0.867);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.sidebar a {
+  color: #f8f9fa; /* Bootstrap light color */
+  text-decoration: none;
+  display: block;
+  padding: 0.75rem 1rem;
+  border-radius: 0.25rem;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.sidebar a:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.main-content {
+  padding: 2rem;
+  background-color: #f8f9fa;
+}
+
+.with-sidebar {
+  margin-left: 250px;
+}
