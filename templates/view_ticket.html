@@ -66,15 +66,20 @@
   {% endif %}
 </div>
 
-<div class="card shadow-sm">
-  <div class="card-body">
-    <h5 class="card-title mb-3">Add a Comment</h5>
-    <form method="POST" action="{{ url_for('add_comment', ticket_id=ticket['id']) }}">
-      <div class="mb-3">
-        <textarea class="form-control" name="content" rows="3" placeholder="Write your comment here..." required></textarea>
-      </div>
-      <button type="submit" class="btn btn-primary">Submit Comment</button>
-    </form>
+{% if ticket['status'] != 'Closed' %}
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h5 class="card-title mb-3">Add a Comment</h5>
+      <form method="POST" action="{{ url_for('add_comment', ticket_id=ticket['id']) }}">
+        <div class="mb-3">
+          <textarea class="form-control" name="content" rows="3" placeholder="Write your comment here..." required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit Comment</button>
+      </form>
+    </div>
   </div>
-</div>
+{% else %}
+  <div class="alert alert-warning">This ticket is closed. Commenting is disabled.</div>
+{% endif %}
+
 {% endblock %}

@@ -10,36 +10,54 @@
 <table class="table table-striped table-hover shadow-sm">
   <thead class="table-dark">
     <tr>
-      <th scope="col">#</th>
-      <th scope="col">First Name</th>
-      <th scope="col">Last Name</th>
-      <th scope="col">Email</th>
-      <th scope="col">Employee ID</th>
-      <th scope="col">Role</th>
+      <th>#</th>
+      <th>First Name</th>
+      <th>Last Name</th>
+      <th>Email</th>
+      <th>Employee ID</th>
+      <th>Role</th>
     </tr>
   </thead>
   <tbody>
     {% for user in users %}
-    <tr class="table-row-link" onclick="window.location='{{ url_for('view_user_tickets', user_id=user.id) }}'">
-        <th scope="row">{{ loop.index }}</th>
-        <td>{{ user.first_name }}</td>
-        <td>{{ user.last_name }}</td>
-        <td>{{ user.email }}</td>
-        <td>{{ user.employee_id }}</td>
-        <td>
+    <tr 
+      class="table-row-link" 
+      data-href="{{ url_for('view_user_tickets', user_id=user.id) }}"
+    >
+      <th scope="row">{{ loop.index }}</th>
+      <td>{{ user.first_name }}</td>
+      <td>{{ user.last_name }}</td>
+      <td>{{ user.email }}</td>
+      <td>{{ user.employee_id }}</td>
+      <td>
         <span class="badge {% if user.role == 'admin' %}bg-danger{% else %}bg-secondary{% endif %}">
-            {{ user.role }}
+          {{ user.role }}
         </span>
-        </td>
+      </td>
     </tr>
     {% else %}
     <tr>
-        <td colspan="6" class="text-center text-muted">No users found.</td>
+      <td colspan="6" class="text-center text-muted">No users found.</td>
     </tr>
     {% endfor %}
   </tbody>
-
 </table>
 
 <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.table-row-link').forEach(function(row) {
+      row.style.cursor = 'pointer';
+      row.addEventListener('click', function() {
+        const href = this.getAttribute('data-href');
+        if (href) {
+          window.location = href;
+        }
+      });
+    });
+  });
+</script>
 {% endblock %}

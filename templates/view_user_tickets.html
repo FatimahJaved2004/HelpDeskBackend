@@ -16,9 +16,19 @@
   </thead>
   <tbody>
     {% for ticket in tickets %}
-    <tr>
+    <tr class="clickable-row" onclick="window.location='{{ url_for('view_ticket', ticket_id=ticket.id) }}'">
       <td>{{ ticket.id }}</td>
-      <td>{{ ticket.title }}</td>
+      <td>
+        <span
+          class="text-primary"
+          data-bs-toggle="popover"
+          data-bs-trigger="hover focus"
+          title="{{ ticket.title }}"
+          data-bs-content="{{ ticket.description | e }}"
+        >
+          {{ ticket.title }}
+        </span>
+      </td>
       <td>
         <span class="badge {% if ticket.status == 'Closed' %}bg-danger{% else %}bg-success{% endif %}">
           {{ ticket.status }}
@@ -35,4 +45,26 @@
 </table>
 
 <a href="{{ url_for('view_users') }}" class="btn btn-secondary">Back to User List</a>
+
+<style>
+  .clickable-row {
+    cursor: pointer;
+  }
+  .clickable-row:hover {
+    background-color: #f1f1f1;
+  }
+</style>
+
+<!-- Enable Bootstrap popovers -->
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
+    popoverTriggerList.forEach(el => {
+      new bootstrap.Popover(el, {
+        trigger: 'hover',
+        placement: 'top'
+      });
+    });
+  });
+</script>
 {% endblock %}
