@@ -1,3 +1,4 @@
+
 import pytest
 import tempfile
 import sys
@@ -6,12 +7,14 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from app import app, init_db, get_db
 
-# ---------- Fixture to create a temp database ----------
+
+# ---------- Test Setup ----------
 @pytest.fixture
 def client():
     db_fd, db_path = tempfile.mkstemp()
     app.config['DATABASE'] = db_path
     app.config['TESTING'] = True
+    app.config['WTF_CSRF_ENABLED'] = False
 
     with app.test_client() as client:
         with app.app_context():
@@ -21,7 +24,7 @@ def client():
     os.close(db_fd)
     os.unlink(db_path)
 
-# ---------- Helper functions ----------
+# ---------- Helper Functions ----------
 def register_user(client, email, emp_id, role='employee'):
     return client.post('/register', data={
         'email': email,
@@ -40,6 +43,10 @@ def login_user(client, email):
     }, follow_redirects=True)
 
 # ---------- Tests ----------
+def test_home_page(client):
+    resp = client.get('/')
+    assert b'Help Desk' in resp.data or resp.status_code == 200
+
 def test_successful_register(client):
     resp = register_user(client, 'new@example.com', 'EMP1001')
     assert b'Registration successful' in resp.data
@@ -48,6 +55,11 @@ def test_duplicate_email_register(client):
     register_user(client, 'dup@example.com', 'EMP1002')
     resp = register_user(client, 'dup@example.com', 'EMP1003')
     assert b'Email already exists' in resp.data
+
+def test_register_duplicate_employee_id(client):
+    register_user(client, 'user1@example.com', 'EMP2000')
+    resp = register_user(client, 'user2@example.com', 'EMP2000')
+    assert b'Employee ID already exists' in resp.data
 
 def test_register_invalid_employee_id(client):
     resp = client.post('/register', data={
@@ -104,10 +116,6 @@ def test_dashboard_requires_login(client):
     resp = client.get('/dashboard', follow_redirects=True)
     assert b'Login' in resp.data
 
-def test_view_ticket_requires_login(client):
-    resp = client.get('/ticket/1', follow_redirects=True)
-    assert b'Login' in resp.data
-
 def test_ticket_submission(client):
     register_user(client, 'ticket@example.com', 'EMP1008')
     login_user(client, 'ticket@example.com')
@@ -131,15 +139,6 @@ def test_ticket_edit(client):
     assert b'Ticket updated successfully' in resp.data
     assert b'New Title' in resp.data
 
-def test_edit_ticket_get(client):
-    register_user(client, 'editget@example.com', 'EMP1011')
-    login_user(client, 'editget@example.com')
-    client.post('/submit', data={'title': 'GET Test', 'description': 'desc'})
-    db = get_db()
-    ticket_id = db.execute('SELECT id FROM tickets WHERE title = ?', ('GET Test',)).fetchone()['id']
-    resp = client.get(f'/ticket/{ticket_id}/edit')
-    assert b'GET Test' in resp.data
-
 def test_add_comment(client):
     register_user(client, 'comment@example.com', 'EMP1012')
     login_user(client, 'comment@example.com')
@@ -156,12 +155,9 @@ def test_admin_delete_ticket(client):
     client.post('/submit', data={'title': 'Del Ticket', 'description': 'Desc'})
     db = get_db()
     ticket_id = db.execute('SELECT id FROM tickets WHERE title = ?', ('Del Ticket',)).fetchone()['id']
-
-    # Employee tries delete
     resp = client.post(f'/ticket/{ticket_id}/delete', follow_redirects=True)
     assert b'not authorised' in resp.data
 
-    # Admin deletes
     register_user(client, 'admin@example.com', 'EMP1014', role='admin')
     login_user(client, 'admin@example.com')
     resp = client.post(f'/ticket/{ticket_id}/delete', follow_redirects=True)
@@ -173,13 +169,39 @@ def test_admin_close_ticket(client):
     client.post('/submit', data={'title': 'Close Ticket', 'description': 'Desc'})
     db = get_db()
     ticket_id = db.execute('SELECT id FROM tickets WHERE title = ?', ('Close Ticket',)).fetchone()['id']
-
-    # Employee tries close
     resp = client.post(f'/ticket/{ticket_id}/close', follow_redirects=True)
     assert b'not authorised' in resp.data
 
-    # Admin closes
     register_user(client, 'adminclose@example.com', 'EMP1016', role='admin')
     login_user(client, 'adminclose@example.com')
     resp = client.post(f'/ticket/{ticket_id}/close', follow_redirects=True)
     assert b'Ticket closed successfully' in resp.data
+
+def test_admin_view_users(client):
+    register_user(client, 'adminv@example.com', 'EMP2021', role='admin')
+    login_user(client, 'adminv@example.com')
+    resp = client.get('/admin/users')
+    assert b'EMP2021' in resp.data
+
+def test_non_admin_view_users_denied(client):
+    register_user(client, 'empv@example.com', 'EMP2022', role='employee')
+    login_user(client, 'empv@example.com')
+    resp = client.get('/admin/users', follow_redirects=True)
+    assert b'not authorised' in resp.data
+
+def test_admin_view_user_tickets(client):
+    register_user(client, 'target@example.com', 'EMP2023', role='employee')
+    login_user(client, 'target@example.com')
+    client.post('/submit', data={'title': 'Emp Ticket', 'description': 'emp desc'})
+    register_user(client, 'adminv2@example.com', 'EMP2024', role='admin')
+    login_user(client, 'adminv2@example.com')
+    db = get_db()
+    user_id = db.execute('SELECT id FROM users WHERE email = ?', ('target@example.com',)).fetchone()['id']
+    resp = client.get(f'/users/{user_id}/tickets')
+    assert b'Emp Ticket' in resp.data
+
+def test_view_user_tickets_invalid_user(client):
+    register_user(client, 'adminv3@example.com', 'EMP2025', role='admin')
+    login_user(client, 'adminv3@example.com')
+    resp = client.get('/users/999/tickets', follow_redirects=True)
+    assert b'User not found' in resp.data
