@@ -55,16 +55,16 @@ def naturaltime_filter(value):
 def seed_dummy_users():
     db = get_db()
     users = [
-        ('admin@fujitsu.com', generate_password_hash('adminpass'), 'Alice', 'Admin', 'EMP0001', 'admin'),
-        ('user1@fujitsu.com', generate_password_hash('userpass'), 'Bob', 'Smith', 'EMP0002', 'employee'),
-        ('user2@fujitsu.com', generate_password_hash('userpass2'), 'Charlie', 'Jane', 'EMP0003', 'employee'),
-        ('user3@fujitsu.com', generate_password_hash('adminpass2'), 'David', 'Lee', 'EMP0004', 'admin'),
-        ('user5@fujitsu.com', generate_password_hash('userpass4'), 'Fatimah', 'Javed', 'EMP0005', 'employee'),
-        ('user6@fujitsu.com', generate_password_hash('userpass5'), 'Evelyn', 'Adams', 'EMP0006', 'employee'),
-        ('user7@fujitsu.com', generate_password_hash('userpass6'), 'Sam', 'Miller', 'EMP0007', 'employee'),
-        ('user8@fujitsu.com', generate_password_hash('userpass7'), 'Toto', 'Brown', 'EMP0008', 'employee'),
-        ('user9@fujitsu.com', generate_password_hash('userpass8'), 'Ashton', 'Wright', 'EMP0009', 'employee'),
-        ('user10@fujitsu.com', generate_password_hash('userpass9'), 'Mehak', 'Sajel', 'EMP0010', 'employee')
+        ('admin@fujitsu.com', generate_password_hash('Admin1Pass123!'), 'Alice', 'Admin', 'EMP0001', 'admin'),
+        ('user@fujitsu.com', generate_password_hash('User1Pass123!'), 'Bob', 'Smith', 'EMP0002', 'employee'),
+        ('user2@fujitsu.com', generate_password_hash('User2Pass123!'), 'Charlie', 'Jane', 'EMP0003', 'employee'),
+        ('admin2@fujitsu.com', generate_password_hash('Admin2Pass123!'), 'David', 'Lee', 'EMP0004', 'admin'),
+        ('user3@fujitsu.com', generate_password_hash('User3Pass123!'), 'Fatimah', 'Javed', 'EMP0005', 'employee'),
+        ('user4@fujitsu.com', generate_password_hash('User4Pass123!'), 'Evelyn', 'Adams', 'EMP0006', 'employee'),
+        ('user5@fujitsu.com', generate_password_hash('User5Pass123!'), 'Sam', 'Miller', 'EMP0007', 'employee'),
+        ('user6@fujitsu.com', generate_password_hash('User6Pass123!'), 'Toto', 'Brown', 'EMP0008', 'employee'),
+        ('user7@fujitsu.com', generate_password_hash('User7Pass123!'), 'Ashton', 'Wright', 'EMP0009', 'employee'),
+        ('user8@fujitsu.com', generate_password_hash('User8Pass123!'), 'Mehak', 'Sajel', 'EMP0010', 'employee')
     ]
     for u in users:
         try:
