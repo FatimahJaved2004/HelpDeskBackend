@@ -37,7 +37,12 @@ http://localhost:5000
 You can **log in** using the pre-created admin account:
 
 - **Email**: `admin@fujitsu.com`  
-- **Password**: `adminpass`
+- **Password**: `Admin1Pass123!`
+
+You can **log in** using the pre-created **user** account:
+
+- **Email**: `user@fujitsu.com`  
+- **Password**: `User1Pass123!`
 
 Or simply **register a new user/admin** via the homepage and log in with your details.
 
