@@ -34,7 +34,7 @@ http://localhost:5000
 
 ### 3. Log In or Register
 
-You can **log in** using the pre-created admin account:
+You can **log in** using the pre-created **admin** account:
 
 - **Email**: `admin@fujitsu.com`  
 - **Password**: `Admin1Pass123!`
