@@ -1,12 +1,14 @@
-{% extends 'base_dashboard.html' %}
+{% extends 'base_dashboard.html' %}  <!-- Inherit base layout -->
 
-{% block title %}Submit Ticket{% endblock %}
+{% block title %}Submit Ticket{% endblock %}  <!-- Title shown in browser tab -->
 
 {% block content %}
+  <!-- Card for ticket submission -->
   <div class="card mx-auto" style="max-width: 600px;">
     <div class="card-body">
       <h3 class="card-title mb-4">Submit a New Ticket</h3>
 
+      <!-- Display flashed messages for user feedback -->
       {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
           {% for category, message in messages %}
@@ -18,18 +20,30 @@
         {% endif %}
       {% endwith %}
 
-      <form method="POST">
+      <!-- Ticket submission form -->
+      <form method="POST" novalidate>
+        <!-- Ticket title input -->
         <div class="mb-3">
           <label for="title" class="form-label">Ticket Title</label>
           <input type="text" class="form-control" id="title" name="title" required>
         </div>
+
+        <!-- Description textarea -->
         <div class="mb-3">
           <label for="description" class="form-label">Description</label>
-          <textarea class="form-control" id="description" name="description" rows="4" required></textarea>
+          <textarea class="form-control" id="description" name="description" rows="4" maxlength="500" required>{{ request.form.description }}</textarea>
+          <small id="desc-count" class="form-text text-muted">0 / 500 characters</small>
+          <div class="invalid-feedback">Please provide a description.</div>
         </div>
+
+        <!-- Submit and back buttons -->
         <button type="submit" class="btn btn-primary">Submit Ticket</button>
         <a href="{{ url_for('dashboard') }}" class="btn btn-secondary ms-2">Back</a>
       </form>
     </div>
   </div>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{{ url_for('static', filename='js/submit_ticket.js') }}?v=1.0"></script>
 {% endblock %}

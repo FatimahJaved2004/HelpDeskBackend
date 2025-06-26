@@ -3,8 +3,12 @@
 {% block title %}Help Desk Home{% endblock %}
 
 {% block content %}
+<!-- welcome page centered vertically and horizontally -->
+
 <div class="d-flex align-items-center justify-content-center vh-100 flex-column">
+  <!-- Welcome title -->
   <h1 class="mb-4">Welcome to the Help Desk</h1>
+    <!-- Login and Register buttons -->
   <div>
     <a href="{{ url_for('login') }}" class="btn btn-danger btn-lg m-2">Login</a>
     <a href="{{ url_for('register') }}" class="btn btn-outline-danger btn-lg m-2">Register</a>

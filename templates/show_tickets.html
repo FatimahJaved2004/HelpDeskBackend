@@ -1,21 +1,32 @@
-{% extends 'base_dashboard.html' %}
+{% extends 'base_dashboard.html' %}  <!-- Inherit from the main dashboard layout -->
 
-{% block title %}Your Tickets{% endblock %}
+{% block title %}Your Tickets{% endblock %}  <!-- Page title shown in the browser tab -->
 
 {% block content %}
+
+<!-- Header section with alignment -->
 <div class="d-flex justify-content-between align-items-center mb-4">
   <h3 class="mb-0">Your Tickets</h3>
+
+  <!-- Button to submit a new ticket -->
   <a href="{{ url_for('submit_ticket') }}" class="btn btn-primary">Submit New Ticket</a>
 </div>
 
+<!-- Ticket list -->
 <div class="list-group">
-  {% for ticket in tickets %}
+  {% for ticket in tickets %}  <!-- Loop through each ticket passed from Flask -->
   <a href="{{ url_for('view_ticket', ticket_id=ticket['id']) }}" class="list-group-item list-group-item-action shadow-sm mb-2">
+    
+    <!-- Top row: ticket title and time since creation -->
     <div class="d-flex w-100 justify-content-between">
       <h5 class="mb-1">{{ ticket['title'] }}</h5>
-      <small class="text-muted">{{ ticket['created_at'] | naturaltime }}</small>
+      <small class="text-muted">{{ ticket['created_at'] | naturaltime }}</small>  <!-- Uses the custom Jinja2 filter -->
     </div>
+
+    <!-- Short description  -->
     <p class="mb-1 text-truncate">{{ ticket['description'] }}</p>
+
+    <!-- Bottom row: ticket status and creator name -->
     <small class="text-muted">
       Status:
       <span class="badge {{ 'bg-danger' if ticket['status'] == 'Closed' else 'bg-success' }}">
@@ -24,7 +35,7 @@
       | By: {{ ticket['creator_name'] }}
     </small>
   </a>
-  {% else %}
+  {% else %}  <!-- If no tickets found -->
   <div class="alert alert-info">No tickets found.</div>
   {% endfor %}
 </div>

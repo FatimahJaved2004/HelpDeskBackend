@@ -1,42 +1,43 @@
-{% extends 'base_dashboard.html' %}
+{% extends 'base_dashboard.html' %}  <!-- Inherit layout from base_dashboard -->
 
-{% block title %}{{ user.first_name }}'s Tickets{% endblock %}
+{% block title %}{{ user.first_name }}'s Tickets{% endblock %}  <!-- Page title for user tickets -->
 
 {% block content %}
+<!-- Page heading with user info -->
 <h2 class="mb-4">{{ user.first_name }} {{ user.last_name }} ({{ user.employee_id }}) - Tickets</h2>
 
+<!-- Ticket table -->
 <table class="table table-striped table-hover shadow-sm">
   <thead class="table-dark">
     <tr>
-      <th>#</th>
-      <th>Title</th>
-      <th>Status</th>
-      <th>Created</th>
+      <th>#</th>               <!-- Ticket ID -->
+      <th>Title</th>           <!-- Ticket title -->
+      <th>Status</th>          <!-- Open/Closed status -->
+      <th>Created</th>         <!-- Date created -->
     </tr>
   </thead>
   <tbody>
     {% for ticket in tickets %}
+
+    <!-- Each row is clickable and links to the ticket view page -->
     <tr class="clickable-row" onclick="window.location='{{ url_for('view_ticket', ticket_id=ticket.id) }}'">
       <td>{{ ticket.id }}</td>
-      <td>
-        <span
-          class="text-primary"
-          data-bs-toggle="popover"
-          data-bs-trigger="hover focus"
-          title="{{ ticket.title }}"
-          data-bs-content="{{ ticket.description | e }}"
-        >
-          {{ ticket.title }}
-        </span>
-      </td>
+
+      <!-- Ticket title -->
+      <td>{{ ticket.title }}</td>
+
+      <!-- Status badge: turns red when closed -->
       <td>
         <span class="badge {% if ticket.status == 'Closed' %}bg-danger{% else %}bg-success{% endif %}">
           {{ ticket.status }}
         </span>
       </td>
-      <td>{{ ticket.created_at }}</td>
+
+      <td>{{ ticket.created_at }}</td>  <!-- Creation timestamp -->
     </tr>
+
     {% else %}
+    <!-- Show message if no tickets are found for the user -->
     <tr>
       <td colspan="4" class="text-center text-muted">No tickets found for this user.</td>
     </tr>
@@ -44,27 +45,7 @@
   </tbody>
 </table>
 
+<!-- Back button to return to user list -->
 <a href="{{ url_for('view_users') }}" class="btn btn-secondary">Back to User List</a>
 
-<style>
-  .clickable-row {
-    cursor: pointer;
-  }
-  .clickable-row:hover {
-    background-color: #f1f1f1;
-  }
-</style>
-
-<!-- Enable Bootstrap popovers -->
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]')
-    popoverTriggerList.forEach(el => {
-      new bootstrap.Popover(el, {
-        trigger: 'hover',
-        placement: 'top'
-      });
-    });
-  });
-</script>
 {% endblock %}

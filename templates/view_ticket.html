@@ -1,6 +1,6 @@
-{% extends 'base_dashboard.html' %}
+{% extends 'base_dashboard.html' %} <!-- Inherit from the main dashboard layout -->
 
-{% block title %}View Ticket{% endblock %}
+{% block title %}View Ticket{% endblock %} <!-- Page title shown in the browser tab -->
 
 {% block content %}
 <!-- Header section with alignment -->
@@ -16,7 +16,7 @@
     <!-- Ticket title -->
     <h4 class="mb-2">{{ ticket['title'] }}</h4>
 
-    <!-- Ticket metadata -->
+    <!-- Ticket status -->
     <div class="mb-2 text-muted small">
       <span class="me-3"><strong>Status:</strong>
         <span class="badge {{ 'bg-danger' if ticket['status'] == 'Closed' else 'bg-success' }}">
@@ -33,25 +33,32 @@
 </div>
 
 <!-- Action buttons (edit/delete/close) -->
+ <!-- edit ticket if it is owned by the logged in user or if an admin is logged in -->
 <div class="d-flex flex-wrap gap-2 mb-4">
   {% if session['user_id'] == ticket['user_id'] or session['role'] == 'admin' %}
-    <a href="{{ url_for('edit_ticket', ticket_id=ticket['id']) }}" class="btn btn-warning">Edit Ticket</a>
-  {% endif %}
 
-  {% if session['role'] == 'admin' %}
-    <form method="POST" action="{{ url_for('delete_ticket', ticket_id=ticket['id']) }}" onsubmit="return confirm('Are you sure you want to delete this ticket?');" class="m-0">
-      <button type="submit" class="btn btn-danger">Delete Ticket</button>
-    </form>
-
+    <!-- Edit ticket button, only if ticket is not closed -->
     {% if ticket['status'] != 'Closed' %}
-      <form method="POST" action="{{ url_for('close_ticket', ticket_id=ticket['id']) }}" class="m-0">
-        <button type="submit" class="btn btn-outline-success">Close Ticket</button>
+      <a href="{{ url_for('edit_ticket', ticket_id=ticket['id']) }}" class="btn btn-warning">Edit Ticket</a>
+    {% endif %}
+
+    <!-- Admin actions only admin should be able to delete ticket -->
+    {% if session['role'] == 'admin' %}
+      <form method="POST" action="{{ url_for('delete_ticket', ticket_id=ticket['id']) }}" onsubmit="return confirm('Are you sure you want to delete this ticket?');" class="m-0">
+        <button type="submit" class="btn btn-danger">Delete Ticket</button>
       </form>
     {% endif %}
+
+      <!-- Close ticket button, only if ticket is not already closed -->
+      {% if ticket['status'] != 'Closed' %}
+        <form method="POST" action="{{ url_for('close_ticket', ticket_id=ticket['id']) }}" class="m-0">
+          <button type="submit" class="btn btn-outline-success">Close Ticket</button>
+        </form>
+      {% endif %}
   {% endif %}
 </div>
 
-<!-- Comments section -->
+<!-- Comments section to view comment and author -->
 <div class="mb-4">
   <h4 class="mb-3">Comments</h4>
 

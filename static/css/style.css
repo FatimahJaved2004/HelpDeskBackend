@@ -1,7 +1,12 @@
+/* ----------------------------------------------
+   Global Styles 
+   Theme: Red Theme
+------------------------------------------------- */
+
 body {
   margin: 0;
   font-family: system-ui, sans-serif;
-  background-color: #fff8f6; /* soft background */
+  background-color: #fff8f6; 
 }
 
 .wrapper {
@@ -16,7 +21,7 @@ body {
   left: 0;
   height: 100vh;
   width: 250px;
-  background-color: #c83e3e; /* pastel red */
+  background-color: #c83e3e; 
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -45,6 +50,7 @@ body {
   border-radius: 5px;
 }
 
+ /*  hover effect to change background and shifting text slightly */
 .sidebar .nav-links a:hover {
   background-color: #f99a9a;
   padding-left: 1.25rem;
@@ -66,6 +72,7 @@ body {
 
 /* --- MAIN CONTENT --- */
 .main-content {
+  /* Pushes main content right to make space for sidebar */
   margin-left: 250px;
   padding: 2rem;
   background-color: #fff8f6;
@@ -95,3 +102,10 @@ body {
   background-color: #5a6268;
   border-color: #545b62;
 }
+
+.clickable-row {
+    cursor: pointer;
+  }
+  .clickable-row:hover {
+    background-color: #f1f1f1;
+  }
